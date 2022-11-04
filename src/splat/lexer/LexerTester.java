@@ -49,14 +49,12 @@ public class LexerTester {
 		// Now, we run the tests
 
 		System.out.println("Running tests...");
-		int count = 0;
+
 		for (File testFile : testFiles) {
-			if (testFile.getName().endsWith("_badlex.splat") 
+			if (testFile.getName().endsWith("_badlex.splat")
 			 || testFile.getName().endsWith("_goodlex.splat")) {
 				try {
-					count++;
 					runTest(testFile);
-					if (count == 2)  return;
 				} catch (IOException e) {
 					// This really shouldn't happen if we've already entered
 					// into the test directory
