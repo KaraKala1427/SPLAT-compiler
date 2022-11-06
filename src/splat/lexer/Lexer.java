@@ -40,7 +40,7 @@ public class Lexer {
 					value = "" + (char)ch;
 					continue;
 				}
-				if (category == 1){
+				if (category == 1){ // Non-token separator
 					if (value.length() > 0){
 						if (value.equals("=")){ // must be :=
 							throw new LexException("Unexpected " + (char)ch, line, column - 1);
@@ -55,18 +55,18 @@ public class Lexer {
 						column = 1;
 					}
 				}
-				else if(category == 2){
+				else if(category == 2){ // bin operators, specific symbols
 					if (value.length() == 0){
 						value = value + (char)ch;
 					}
 					else {
 						int lastCh = value.charAt(value.length()-1);
 						int lastCateg = getTokenSeparatorCategory(lastCh);
-						if (lastCateg == 3 || lastCateg == 4){ // if alphanumeric
+						if (lastCateg == 3 || lastCateg == 4){ // if last char is alphanumeric
 							Token token = new Token(value, line, column - 1 - value.length());
 							list.add(token);
 							value = "" + (char)ch;
-						} else if (lastCateg == 2) {
+						} else if (lastCateg == 2) { // if last char is bin operator or specific symbol
 
 							if (isPossibleToBeToken(value + (char)ch)){
 								value = value + (char)ch;
@@ -82,16 +82,16 @@ public class Lexer {
 						}
 					}
 				}
-				else if (category == 3){
+				else if (category == 3){ // alphabet | _
 					if (value.length() > 0){
 						int lastCh = value.charAt(value.length()-1);
 						int lastCateg = getTokenSeparatorCategory(lastCh);
 						int firstCh = value.charAt(0);
 						int firstCateg = getTokenSeparatorCategory(firstCh);
-						if ( firstCateg == 4 ){  // a => 123abc
+						if ( firstCateg == 4 ){  // ex: 123abc
 							throw new LexException("Unexpected " + (char)ch, line, column - 1);
 						}
-						else if(lastCateg == 2){
+						else if(lastCateg == 2){ // ex: >abc
 							Token token = createToken(value, line, column, ch);
 							list.add(token);
 							value = "";
@@ -99,11 +99,11 @@ public class Lexer {
 					}
 					value = value + (char)ch;
 				}
-				else if (category == 4){
+				else if (category == 4){ // digits
 					if (value.length() > 0){
 						int lastCh = value.charAt(value.length()-1);
 						int lastCateg = getTokenSeparatorCategory(lastCh);
-						if (lastCateg == 2){
+						if (lastCateg == 2){ // bin operator | specific symbol
 							Token token = createToken(value, line, column, ch);
 							list.add(token);
 							value = "";
