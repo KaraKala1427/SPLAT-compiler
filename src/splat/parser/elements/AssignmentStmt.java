@@ -16,7 +16,7 @@ public class AssignmentStmt extends Statement{
     public String toString(){
         String result = label;
 
-        result = result + " := " + expr;
+        result = result + " := " + expr + ";";
 
         return result;
     }

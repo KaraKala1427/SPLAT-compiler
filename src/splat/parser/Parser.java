@@ -194,21 +194,27 @@ public class Parser {
 			return new LiteralExpr(tok, tok.getValue());
 		} else if (isLabel(tok) && !peekNext("(")) {
 			return new LabelExpr(tok, tok.getValue());
-		} else if (peekNext("(")) {
+		} else if (isLabel(tok) && peekNext("(")) {
 			Expression label = new LabelExpr(tok, tok.getValue());
 			checkNext("(");
 			List<Expression> argsList = new ArrayList<Expression>();
 			while(!peekNext(")")){
+				if (peekNext(",")){
+					checkNext(",");
+				}
 				Expression expr = parseExpressions();
 				argsList.add(expr);
 			}
 			checkNext(")");
+
 			Expression args = new ArgsExpr(tok, argsList);
 			
 			return new NonVoidFunctionCallExpr(tok, label, args);
+
 		} else if (tok.getValue().equals("(")) {
 			Token tokUnaryCheck = tokens.get(0);
 			if (isUnaryOp(tokUnaryCheck)){
+				System.out.println("unary: " + tokUnaryCheck.getValue());
 				Token tokUnaryOp = tokens.remove(0);
 				Expression exprUnaryOp = parseExpressions();
 				checkNext(")");
@@ -227,8 +233,8 @@ public class Parser {
 
 		}
 		else{
-//			System.out.println("token is " + tok.getValue());
-			throw new ParseException("Expression expected",tok);
+			System.out.println("token is " + tok.getValue() + " next : " + tokens.get(0).getValue());
+			throw new ParseException("Expression expected 1", tok);
 		}
 		return null;
 	}

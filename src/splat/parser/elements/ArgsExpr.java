@@ -25,7 +25,9 @@ public class ArgsExpr extends Expression{
                 result =  result + expr;
                 first = false;
             }
-            result = result  + ", " + expr;
+            else{
+                result = result  + ", " + expr;
+            }
         }
 
         return result;

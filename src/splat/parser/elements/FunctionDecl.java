@@ -57,7 +57,9 @@ public class FunctionDecl extends Declaration {
 				result = result  + param;
 				first = false;
 			}
-			result = result  + ", " + param;
+			else{
+				result = result  + ", " + param;
+			}
 		}
 		result = result  + "): " + retType + " is \n";
 
