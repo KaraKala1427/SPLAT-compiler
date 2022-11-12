@@ -1,5 +1,17 @@
 program
     x:Integer;
 begin
-	x := sum(a, (b + 1));
+	x := (a + 5);
+	return ;
+	return 77;
+	print_line ;
+	print sum(a, (b + 1));
+	getMax(a, (b + 7))
+	if (n + 8)
+	    then return 5 ;
+	else x := (c + 45);
+    end if;
+
+    while (s + d) do d := (d + 1);
+    end while ;
 end ;

@@ -74,7 +74,7 @@ public class Parser {
 			checkNext("begin");
 			
 			List<Statement> stmts = parseStmts();
-			
+
 			checkNext("end");
 			checkNext(";");
 	
@@ -129,8 +129,7 @@ public class Parser {
 	/*
 	 * <var-decl> ::= <label> : <type> ;
 	 */
-	private VariableDecl parseVarDecl() throws ParseException {
-//		Token tokenLabel = tokens.get(0);
+	private VariableDecl parseVarDecl() throws ParseException {;
 		Token tokenLabel = tokens.remove(0);
 		String label = tokenLabel.getValue();
 		if (isKeyword(label)){
@@ -151,22 +150,40 @@ public class Parser {
 	 * <stmts> ::= (  <stmt>  )*
 	 */
 	private List<Statement> parseStmts() throws ParseException {
-		List<Statement> stms = new ArrayList<Statement>();
-		while (!peekNext("end") && !peekTwoAhead(";")) {
+		List<Statement> stmts = new ArrayList<Statement>();
+		while (!(
+				(peekNext("end") && peekTwoAhead(";")) ||
+				(peekNext("end") && peekTwoAhead("if")) ||
+						peekNext("else") ||
+						(peekNext("end") && peekTwoAhead("while"))
+				)
+		) {
 			Statement stmt = parseStmt();
-			stms.add(stmt);
+			stmts.add(stmt);
 		}
 
-		return stms;
+		return stmts;
 	}
 
 	private Statement parseStmt() throws ParseException{
+		System.out.println(tokens.get(0).getValue());
 		if (peekTwoAhead(":=")) {
 			return parseAssignmentStmt();
-//		} else if (peekTwoAhead("(")) {
-//			return parseFuncDecl();
+		} else if (peekNext("return")) {
+			return parseReturnStmt();
+		} else if (peekNext("print_line")) {
+			return parsePrintLineStmt();
+		} else if (peekNext("print")) {
+			return parsePrintStmt();
+		} else if (isLabel(tokens.get(0)) && peekTwoAhead("(") && !isKeyword(tokens.get(0).getValue())) {
+			return parseNonVoidFuncStmt();
+		} else if (peekNext("if")) {
+			return parseIfConditionStmt();
+		} else if (peekNext("while")) {
+			return parseWhileDoStmt();
 		} else {
 			Token tok = tokens.get(0);
+			System.out.println("at: " + tok.getLine() + ":" + tok.getColumn());
 			throw new ParseException("Statement expected", tok);
 		}
 	}
@@ -186,6 +203,92 @@ public class Parser {
 		checkNext(";");
 
 		return new AssignmentStmt(tokenLabel, label, expr);
+	}
+	
+	private ReturnStmt parseReturnStmt() throws ParseException{
+		Token tokenReturn = tokens.remove(0);
+		if (peekNext(";")){
+			ReturnStmt returnStmt = new ReturnStmt(tokenReturn);
+			checkNext(";");
+			return returnStmt;
+		} else {
+			Expression expr = parseExpressions();
+			checkNext(";");
+			return new ReturnStmt(tokenReturn, expr);
+		}
+	}
+
+	private PrintLineStmt parsePrintLineStmt() throws ParseException{
+		Token tokenPrintLine = tokens.remove(0);
+		if (peekNext(";")){
+			PrintLineStmt printLineStmt = new PrintLineStmt(tokenPrintLine);
+			checkNext(";");
+			return printLineStmt;
+		} else {
+			throw new ParseException("Expected ;",tokens.get(0));
+		}
+	}
+
+	private PrintStmt parsePrintStmt() throws ParseException{
+		Token tokenPrint = tokens.remove(0);
+		Expression expr = parseExpressions();
+		checkNext(";");
+		return new PrintStmt(tokenPrint, expr);
+	}
+
+	private NonVoidFunctionCallStmt parseNonVoidFuncStmt() throws ParseException{
+		Token tok = tokens.remove(0);
+		Expression label = new LabelExpr(tok, tok.getValue());
+		checkNext("(");
+		List<Expression> argsList = new ArrayList<Expression>();
+		while(!peekNext(")")){
+			if (peekNext(",")){
+				checkNext(",");
+			}
+			Expression expr = parseExpressions();
+			argsList.add(expr);
+		}
+		checkNext(")");
+
+		Expression args = new ArgsExpr(tok, argsList);
+
+		return new NonVoidFunctionCallStmt(tok, label, args);
+	}
+
+	private IfConditionStmt parseIfConditionStmt() throws ParseException{
+		Token tokenIf = tokens.remove(0);
+		Expression expr = parseExpressions();
+		checkNext("then");
+		List<Statement> stmts1 = parseStmts();
+		if (peekNext("end")){
+			IfConditionStmt ifConditionStmt = new IfConditionStmt(tokenIf, expr, stmts1);
+			checkNext("end");
+			checkNext("if");
+			checkNext(";");
+			return ifConditionStmt;
+		} else if (peekNext("else")) {
+			checkNext("else");
+			List<Statement> stmts2 = parseStmts();
+			IfConditionStmt ifConditionStmt = new IfConditionStmt(tokenIf, expr, stmts1, stmts2);
+			checkNext("end");
+			checkNext("if");
+			checkNext(";");
+			return ifConditionStmt;
+		}else {
+			throw new ParseException("Error: else or end expected, got: " + tokens.get(0).getValue(), tokens.get(0));
+		}
+	}
+
+	private WhileDoStmt parseWhileDoStmt() throws ParseException{
+		Token tokenWhile = tokens.remove(0);
+		Expression expr = parseExpressions();
+		checkNext("do");
+		List<Statement> stmts = parseStmts();
+		checkNext("end");
+		checkNext("while");
+		checkNext(";");
+
+		return new WhileDoStmt(tokenWhile, expr, stmts);
 	}
 
 	private Expression parseExpressions() throws ParseException{
@@ -212,6 +315,7 @@ public class Parser {
 			return new NonVoidFunctionCallExpr(tok, label, args);
 
 		} else if (tok.getValue().equals("(")) {
+//			System.out.println("here:" + tok.getValue() + " next:" + tokens.get(0).getValue());
 			Token tokUnaryCheck = tokens.get(0);
 			if (isUnaryOp(tokUnaryCheck)){
 				System.out.println("unary: " + tokUnaryCheck.getValue());
@@ -234,6 +338,7 @@ public class Parser {
 		}
 		else{
 			System.out.println("token is " + tok.getValue() + " next : " + tokens.get(0).getValue());
+			System.out.println("at: " + tok.getLine() + ":" + tok.getColumn());
 			throw new ParseException("Expression expected 1", tok);
 		}
 		return null;
@@ -270,7 +375,7 @@ public class Parser {
 				|| label.equals("void") || label.equals("Integer")
 				|| label.equals("String") || label.equals("Boolean")
 				|| label.equals("true") || label.equals("false")){
-			System.out.println("this is keyword");
+//			System.out.println("this is keyword");
 			return true;
 		}
 
