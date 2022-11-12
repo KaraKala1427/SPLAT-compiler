@@ -98,7 +98,6 @@ public class Parser {
 			Declaration decl = parseDecl();
 			decls.add(decl);
 		}
-//		System.out.println(decls);
 		return decls;
 	}
 	
@@ -122,8 +121,31 @@ public class Parser {
 	 * 						<loc-var-decls> begin <stmts> end ;
 	 */
 	private FunctionDecl parseFuncDecl() throws ParseException {
-		// TODO Auto-generated method stub
-		return null;
+		Token tokenLabel = tokens.remove(0);
+		String label = tokenLabel.getValue();
+		if (isKeyword(label)){
+			throw new ParseException("Invalid label declaration", tokenLabel);
+		}
+		checkNext("(");
+		List<Param> params = parseParams();
+		checkNext(")");
+		checkNext(":");
+
+		Token tokenReturnType = tokens.remove(0);
+		ReturnType retType = convertStringToRetType(tokenReturnType);
+
+		checkNext("is");
+
+		List<VariableDecl> localVarDecls = parseLocalVarDecls();
+
+		checkNext("begin");
+
+		List<Statement> stmts = parseStmts();
+
+		checkNext("end");
+		checkNext(";");
+
+		return new FunctionDecl(tokenLabel, tokenLabel.getValue(), params, retType, localVarDecls, stmts);
 	}
 
 	/*
@@ -144,6 +166,42 @@ public class Parser {
 		checkNext(";");
 
 		return new VariableDecl(tokenLabel, label, type);
+	}
+
+	private List<VariableDecl> parseLocalVarDecls() throws ParseException{
+		List<VariableDecl> localVarDecls = new ArrayList<VariableDecl>();
+		while (!peekNext("begin")) {
+			VariableDecl varDecl = parseVarDecl();
+			localVarDecls.add(varDecl);
+		}
+
+		return localVarDecls;
+	}
+
+	private List<Param> parseParams() throws ParseException{
+		List<Param> params = new ArrayList<Param>();
+
+		while (!peekNext(")")) {
+			Param param = parseParam();
+			params.add(param);
+			if (peekNext(",")){
+				checkNext(",");
+			}
+		}
+
+		return params;
+	}
+
+	private Param parseParam() throws ParseException{
+		Token tokenLabel = tokens.remove(0);
+		String label = tokenLabel.getValue();
+		if (isKeyword(label)){
+			throw new ParseException("Invalid label declaration", tokenLabel);
+		}
+		checkNext(":");
+		Token tokenType = tokens.remove(0);
+		Type type = convertStringToType(tokenType);
+		return new Param(tokenLabel, label, type);
 	}
 	
 	/*
@@ -166,7 +224,7 @@ public class Parser {
 	}
 
 	private Statement parseStmt() throws ParseException{
-		System.out.println(tokens.get(0).getValue());
+//		System.out.println(tokens.get(0).getValue());
 		if (peekTwoAhead(":=")) {
 			return parseAssignmentStmt();
 		} else if (peekNext("return")) {
@@ -249,9 +307,8 @@ public class Parser {
 			argsList.add(expr);
 		}
 		checkNext(")");
-
+		checkNext(";");
 		Expression args = new ArgsExpr(tok, argsList);
-
 		return new NonVoidFunctionCallStmt(tok, label, args);
 	}
 
@@ -318,7 +375,6 @@ public class Parser {
 //			System.out.println("here:" + tok.getValue() + " next:" + tokens.get(0).getValue());
 			Token tokUnaryCheck = tokens.get(0);
 			if (isUnaryOp(tokUnaryCheck)){
-				System.out.println("unary: " + tokUnaryCheck.getValue());
 				Token tokUnaryOp = tokens.remove(0);
 				Expression exprUnaryOp = parseExpressions();
 				checkNext(")");
@@ -337,7 +393,6 @@ public class Parser {
 
 		}
 		else{
-			System.out.println("token is " + tok.getValue() + " next : " + tokens.get(0).getValue());
 			System.out.println("at: " + tok.getLine() + ":" + tok.getColumn());
 			throw new ParseException("Expression expected 1", tok);
 		}
@@ -375,7 +430,6 @@ public class Parser {
 				|| label.equals("void") || label.equals("Integer")
 				|| label.equals("String") || label.equals("Boolean")
 				|| label.equals("true") || label.equals("false")){
-//			System.out.println("this is keyword");
 			return true;
 		}
 
@@ -398,7 +452,7 @@ public class Parser {
 
 	private Boolean isLabel(Token token){
 		String label = token.getValue();
-		if (label.matches("^[_a-z]\\w*$")) return true;
+		if (label.matches("^[_a-zA-z]\\w*$")) return true;
 		return false;
 	}
 
@@ -417,6 +471,29 @@ public class Parser {
 		}
 
 		return false;
+	}
+
+	private ReturnType convertStringToRetType(Token tokenRetType) throws ParseException{
+		String typeStr = tokenRetType.getValue();
+
+		ReturnType retType;
+		if (typeStr.equals("Integer")) {
+			retType = ReturnType.Integer;
+		}
+		else if (typeStr.equals("String")) {
+			retType = ReturnType.String;
+		}
+		else if (typeStr.equals("Boolean")) {
+			retType = ReturnType.Boolean;
+		}
+		else if (typeStr.equals("void")) {
+			retType = ReturnType.Void;
+		}
+		else {
+			throw new ParseException("Invalid type " + typeStr, tokenRetType);
+		}
+
+		return retType;
 	}
 
 

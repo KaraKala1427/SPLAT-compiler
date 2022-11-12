@@ -57,8 +57,8 @@ public class ParserTester {
 
 		for (File testFile : testFiles) {
 			// All of our parser testing files should pass lexing
-			if (testFile.getName().endsWith("v_badparse.splat")
-					|| testFile.getName().endsWith("my_goodparse.splat")) {
+			if (testFile.getName().endsWith("_badparse.splat")
+					|| testFile.getName().endsWith("_goodparse.splat")) {
 				try {
 					runTest(testFile);
 				} catch (IOException e) {

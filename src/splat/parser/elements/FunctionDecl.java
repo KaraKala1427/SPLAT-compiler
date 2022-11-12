@@ -8,23 +8,23 @@ public class FunctionDecl extends Declaration {
 
 	public String label;
 	public List<Param> params;
-	public Type retType;
+	public ReturnType retType;
 	public List<VariableDecl> localVarDecls;
-	public List<Statement> stms;
+	public List<Statement> stmts;
 
 	// Need to add extra arguments for setting fields in the constructor 
 	public FunctionDecl(Token tok,
 						String label,
 						List<Param> params,
-						Type retType,
+						ReturnType retType,
 						List<VariableDecl> localVarDecls,
-						List<Statement> stms) {
+						List<Statement> stmts) {
 		super(tok);
 		this.label = label;
 		this.retType = retType;
 		this.params = params;
 		this.localVarDecls = localVarDecls;
-		this.stms = stms;
+		this.stmts = stmts;
 
 	}
 
@@ -32,7 +32,7 @@ public class FunctionDecl extends Declaration {
 		return label;
 	}
 
-	public Type getRetType(){
+	public ReturnType getRetType(){
 		return retType;
 	}
 
@@ -44,8 +44,8 @@ public class FunctionDecl extends Declaration {
 		return localVarDecls;
 	}
 
-	public List<Statement> getStms(){
-		return stms;
+	public List<Statement> getStmts(){
+		return stmts;
 	}
 
 
@@ -67,7 +67,7 @@ public class FunctionDecl extends Declaration {
 			result = "\t" + localVarDecl + "\n";
 		}
 		result = result + "begin \n";
-		for (Statement stmt: stms){
+		for (Statement stmt: stmts){
 			result = result + "   " + stmt + "\n";
 		}
 		result = result + "end;";

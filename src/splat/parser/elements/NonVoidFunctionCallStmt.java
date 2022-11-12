@@ -23,6 +23,6 @@ public class NonVoidFunctionCallStmt extends Statement{
     }
 
     public String toString(){
-        return label + "(" + args + ")";
+        return label + "(" + args + ");";
     }
 }

@@ -6,7 +6,7 @@ begin
 	return 77;
 	print_line ;
 	print sum(a, (b + 1));
-	getMax(a, (b + 7))
+	getMax(a, (b + 7));
 	if (n + 8)
 	    then return 5 ;
 	else x := (c + 45);
